@@ -1,4 +1,4 @@
-﻿package com.demonis.daofactory.modelisation;
+package com.demonis.daofactory.modelisation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
