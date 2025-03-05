@@ -5,6 +5,7 @@ import com.demonis.daofactory.modelisation.Column;
 import com.demonis.daofactory.modelisation.PrimaryKey;
 import com.demonis.daofactory.modelisation.Table;
 
+import java.beans.DesignMode;
 import java.lang.reflect.Field;
 import java.net.http.WebSocket;
 import java.sql.*;
@@ -106,11 +107,11 @@ public abstract class DBObject {
         }
     }
 
-    public void delete() throws IllegalAccessException {
+    public <T extends DBObject> T delete() throws IllegalAccessException {
         String tableName = getTableName();
 
         Field id = null;
-
+        T instance = this;
         for (Field field : this.getClass().getDeclaredFields()) {
             field.setAccessible(true);
             PrimaryKey primaryKey = field.getAnnotation(PrimaryKey.class);
@@ -126,12 +127,14 @@ public abstract class DBObject {
             try (PreparedStatement stmt = connection.prepareStatement(query)) {
                 stmt.setObject(1, id.get(this));
                 stmt.executeUpdate();
+                return this;
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         } else {
             throw new RuntimeException("Cannot delete an object without an ID");
         }
+        return null;
     }
 
     public static <T extends DBObject> T findById(Class<T> clazz, Object id) {
@@ -245,5 +248,15 @@ public abstract class DBObject {
             e.printStackTrace();
         }
         return list;
+    }
+    
+    public void createdDatabase() {
+        String tableName = getTableName();
+        String query = "CREATE TABLE IF NOT EXISTS " + tableName + " (id INT PRIMARY KEY AUTO_INCREMENT)";
+        try (PreparedStatement stmt = connection.prepareStatement(query)) {
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
